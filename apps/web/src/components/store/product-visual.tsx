@@ -19,7 +19,7 @@ export function ProductVisual({
   return (
     <div
       className={cn(
-        'relative flex aspect-square items-center justify-center overflow-hidden rounded-[20px] bg-gradient-to-br from-mist-gray via-fog-white to-blush-peach/40',
+        'relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-mist-gray via-fog-white to-blush-peach/40',
         className,
       )}
     >
@@ -35,7 +35,7 @@ export function ProductVisual({
       ) : (
         <>
           <div
-            className="absolute inset-8 rounded-[32px] border border-ink-black/8 bg-paper-white/70 shadow-subtle-3"
+            className="absolute inset-8 rounded-xl border border-ink-black/8 bg-paper-white/70 shadow-subtle-3"
             aria-hidden="true"
           />
           <div className="relative px-8 text-center">

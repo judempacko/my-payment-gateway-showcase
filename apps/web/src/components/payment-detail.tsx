@@ -86,7 +86,7 @@ export function PaymentDetail({
         </Link>
       ) : null}
 
-      <Card className="rounded-[24px] border border-border bg-paper-white shadow-none">
+      <Card className="rounded-2xl border border-border bg-paper-white shadow-none">
         <CardHeader className="gap-4">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
@@ -95,7 +95,7 @@ export function PaymentDetail({
                 <Money amountMinor={payment.amountMinor} currency={payment.currency} />
               </p>
             </div>
-            <StatusBadge status={payment.status} pulse={!settled} />
+            <StatusBadge status={payment.status} />
           </div>
 
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-gray">

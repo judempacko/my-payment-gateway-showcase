@@ -22,11 +22,9 @@ const toneByStatus: Record<PaymentStatus, StatusTone> = {
 
 export function StatusBadge({
   status,
-  pulse = false,
   compact = false,
 }: {
   status: PaymentStatus;
-  pulse?: boolean;
   compact?: boolean;
 }) {
   const t = useTranslations('status');
@@ -37,10 +35,6 @@ export function StatusBadge({
       variant={toneByStatus[status]}
       className={cn('whitespace-nowrap', compact && 'gap-1.5 px-2.5 py-0.5 text-sm')}
     >
-      <span
-        className={cn('h-2 w-2 rounded-full bg-current', pulse && 'animate-pulse')}
-        aria-hidden="true"
-      />
       {compact ? shortT(status) : t(status)}
     </Badge>
   );

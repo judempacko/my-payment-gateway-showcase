@@ -41,7 +41,7 @@ async function RailsArtifact() {
   const t = await getTranslations('home');
 
   return (
-    <Card className="w-56 gap-3 rounded-[20px] bg-paper-white py-0 pt-4 pr-5 pb-3 pl-3 shadow-subtle-3">
+    <Card className="w-56 gap-3 rounded-2xl bg-paper-white py-0 pt-4 pr-5 pb-3 pl-3 shadow-subtle-3">
       <CardHeader className="px-0">
         <p className="text-sm text-ash-gray">{t('artifacts.rails')}</p>
       </CardHeader>
@@ -68,7 +68,7 @@ async function PaymentArtifact({ className }: { className?: string }) {
   return (
     <Card
       className={cn(
-        'w-84 gap-4 rounded-[20px] bg-paper-white py-0 pt-4 pr-5 pb-3 pl-3 shadow-subtle-3',
+        'w-84 gap-4 rounded-2xl bg-paper-white py-0 pt-4 pr-5 pb-3 pl-3 shadow-subtle-3',
         className,
       )}
     >
@@ -103,7 +103,7 @@ async function ChartArtifact() {
   const t = await getTranslations('home.artifacts');
 
   return (
-    <Card className="w-56 gap-3 rounded-[20px] bg-paper-white py-0 pt-4 pr-5 pb-3 pl-3 shadow-subtle-3">
+    <Card className="w-56 gap-3 rounded-2xl bg-paper-white py-0 pt-4 pr-5 pb-3 pl-3 shadow-subtle-3">
       <CardHeader className="px-0">
         <p className="text-sm text-ash-gray">{t('activation')}</p>
         <span className="text-body-lg font-medium text-ink-black">{t('activationValue')}</span>
@@ -127,7 +127,7 @@ async function ComposerArtifact() {
   const t = await getTranslations('home.artifacts');
 
   return (
-    <div className="w-80 rounded-[20px] bg-paper-white pt-4 pr-5 pb-3 pl-3 shadow-subtle-3">
+    <div className="w-80 rounded-2xl bg-paper-white pt-4 pr-5 pb-3 pl-3 shadow-subtle-3">
       <div className="flex items-center gap-2 rounded-lg border border-border p-4">
         <span className="flex size-10 items-center justify-center rounded-full text-ash-gray">
           @

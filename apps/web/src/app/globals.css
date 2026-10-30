@@ -14,18 +14,20 @@
   --color-sienna-brown: #5d2a1a;
 
   /* Functional status colors — payment surfaces only */
-  --color-status-success: #235b3b;
-  --color-status-success-soft: #eef5f0;
-  --color-status-success-border: #cfe3d6;
-  --color-status-warning: #6b4a12;
-  --color-status-warning-soft: #fbf4e6;
-  --color-status-warning-border: #ead9b7;
-  --color-status-danger: #842f28;
-  --color-status-danger-soft: #f9e9e7;
-  --color-status-danger-border: #eccdca;
-  --color-status-info: #3a4b5c;
-  --color-status-info-soft: #eef2f6;
-  --color-status-info-border: #d5dee7;
+  --color-status-success: #137333;
+  --color-status-success-soft: #e6f4ea;
+  --color-status-success-border: #ceead6;
+  --color-status-warning: #a35600;
+  --color-status-warning-soft: #fef7e0;
+  --color-status-warning-border: #fce8b2;
+  --color-status-danger: #c5221f;
+  --color-status-danger-soft: #fce8e6;
+  --color-status-danger-border: #f4c7c3;
+  --color-status-info: #1967d2;
+  --color-status-info-soft: #e8f0fe;
+  --color-status-info-border: #c6dafc;
+  --color-status-neutral: #5f6368;
+  --color-status-neutral-soft: #f1f3f4;
 
   /* Typography */
   --font-signifier: var(--font-signifier-src), ui-serif, Georgia, 'Times New Roman', serif;
@@ -71,12 +73,12 @@
   --font-weight-medium: 500;
 
   /* Named radii */
-  --radius-cards: 24px;
-  --radius-images: 12px;
-  --radius-inputs: 16px;
+  --radius-cards: 8px;
+  --radius-images: 6px;
+  --radius-inputs: 6px;
   --radius-buttons: 9999px;
-  --radius-smallcards: 16px;
-  --radius-elevatedcards: 20px;
+  --radius-smallcards: 6px;
+  --radius-elevatedcards: 8px;
 
   /* Elevation */
   --shadow-subtle: oklab(0 0 0 / 0.05) 0px 0px 0px 1px, rgba(0, 0, 0, 0.08) 0px 4px 24px 0px;
@@ -107,11 +109,11 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  --radius-sm: 0.01px;
+  --radius-sm: 2px;
   --radius-md: var(--radius-inputs);
   --radius-lg: var(--radius-smallcards);
   --radius-xl: var(--radius-images);
-  --radius-2xl: var(--radius-inputs);
+  --radius-2xl: var(--radius-elevatedcards);
   --radius-2xl-2: var(--radius-elevatedcards);
   --radius-3xl: var(--radius-cards);
 }
@@ -139,7 +141,7 @@
   --border: #ececec;
   --input: #ececec;
   --ring: #17191c;
-  --radius: 16px;
+  --radius: 8px;
 
   /* Steep spacing tokens */
   --spacing-unit: 4px;
