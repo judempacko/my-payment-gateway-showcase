@@ -9,7 +9,17 @@ import {
   type PaymentStatus,
 } from '@pay/contracts';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { ArrowUpRight, CircleAlert, Inbox, Search, X } from 'lucide-react';
+import {
+  ArrowUpDown,
+  ArrowUpRight,
+  ChevronDown,
+  CircleAlert,
+  Hash,
+  Inbox,
+  SlidersHorizontal,
+  User,
+  X,
+} from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { Link } from '@/i18n/navigation';
@@ -18,7 +28,15 @@ import { PaymentDetail } from '@/components/payment-detail';
 import { StatusBadge } from '@/components/status-badge';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Pagination,
   PaginationContent,
@@ -27,6 +45,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
@@ -79,17 +98,24 @@ function matchesPeriod(payment: Payment, period: PeriodFilter): boolean {
   return new Date(payment.createdAt).getTime() >= Date.now() - PERIOD_MS[period];
 }
 
-function matchesSearch(payment: Payment, query: string): boolean {
+function matchesPaymentId(payment: Payment, query: string): boolean {
   const needle = query.trim().toLowerCase();
 
   if (!needle) {
     return true;
   }
 
-  return [payment.id, payment.customer.name, payment.customer.email, payment.providerRef ?? '']
-    .join(' ')
-    .toLowerCase()
-    .includes(needle);
+  return payment.id.toLowerCase().includes(needle);
+}
+
+function matchesCustomer(payment: Payment, query: string): boolean {
+  const needle = query.trim().toLowerCase();
+
+  if (!needle) {
+    return true;
+  }
+
+  return [payment.customer.name, payment.customer.email].join(' ').toLowerCase().includes(needle);
 }
 
 function scaledAmount(payment: Payment): bigint {
@@ -128,15 +154,18 @@ export function PaymentsPanel() {
 
   const [status, setStatus] = useState<StatusFilter>('ALL');
   const [provider, setProvider] = useState<ProviderFilter>('ALL');
-  const [search, setSearch] = useState('');
+  const [paymentIdQuery, setPaymentIdQuery] = useState('');
+  const [customerQuery, setCustomerQuery] = useState('');
   const [sort, setSort] = useState<SortOption>(DEFAULT_SORT);
   const [period, setPeriod] = useState<PeriodFilter>('all');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [urlReady, setUrlReady] = useState(false);
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState<number>(PAGE_SIZE_OPTIONS[0]);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
-  const deferredSearch = useDeferredValue(search);
+  const deferredPaymentId = useDeferredValue(paymentIdQuery);
+  const deferredCustomer = useDeferredValue(customerQuery);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -161,7 +190,8 @@ export function PaymentsPanel() {
       setPeriod(periodParam as PeriodFilter);
     }
 
-    setSearch(params.get('q') ?? '');
+    setPaymentIdQuery(params.get('id') ?? '');
+    setCustomerQuery(params.get('customer') ?? '');
     setUrlReady(true);
   }, []);
 
@@ -180,8 +210,12 @@ export function PaymentsPanel() {
       params.set('provider', provider);
     }
 
-    if (search.trim()) {
-      params.set('q', search.trim());
+    if (paymentIdQuery.trim()) {
+      params.set('id', paymentIdQuery.trim());
+    }
+
+    if (customerQuery.trim()) {
+      params.set('customer', customerQuery.trim());
     }
 
     if (sort !== DEFAULT_SORT) {
@@ -194,11 +228,11 @@ export function PaymentsPanel() {
 
     const query = params.toString();
     window.history.replaceState(null, '', `${window.location.pathname}${query ? `?${query}` : ''}`);
-  }, [period, provider, search, sort, status, urlReady]);
+  }, [customerQuery, paymentIdQuery, period, provider, sort, status, urlReady]);
 
   useEffect(() => {
     setPageIndex(0);
-  }, [period, provider, search, status, pageSize]);
+  }, [customerQuery, paymentIdQuery, period, provider, status, pageSize]);
 
   const filters = {
     status: status === 'ALL' ? undefined : status,
@@ -230,24 +264,72 @@ export function PaymentsPanel() {
     () =>
       sortPayments(
         items.filter(
-          (payment) => matchesPeriod(payment, period) && matchesSearch(payment, deferredSearch),
+          (payment) =>
+            matchesPeriod(payment, period) &&
+            matchesPaymentId(payment, deferredPaymentId) &&
+            matchesCustomer(payment, deferredCustomer),
         ),
         sort,
       ),
-    [deferredSearch, items, period, sort],
+    [deferredCustomer, deferredPaymentId, items, period, sort],
   );
 
-  const hasActiveFilters =
-    status !== 'ALL' || provider !== 'ALL' || period !== 'all' || search.trim() !== '';
-  const hasControls = hasActiveFilters || sort !== DEFAULT_SORT;
+  const activeFilters: Array<{ key: string; label: string; clear: () => void }> = [];
 
-  function resetFilters() {
+  if (paymentIdQuery.trim()) {
+    activeFilters.push({
+      key: 'paymentId',
+      label: `${t('table.payment')} : ${paymentIdQuery.trim()}`,
+      clear: () => setPaymentIdQuery(''),
+    });
+  }
+
+  if (customerQuery.trim()) {
+    activeFilters.push({
+      key: 'customer',
+      label: `${t('table.customer')} : ${customerQuery.trim()}`,
+      clear: () => setCustomerQuery(''),
+    });
+  }
+
+  if (status !== 'ALL') {
+    activeFilters.push({
+      key: 'status',
+      label: `${t('filterStatusLabel')} : ${statusT(status)}`,
+      clear: () => setStatus('ALL'),
+    });
+  }
+
+  if (provider !== 'ALL') {
+    activeFilters.push({
+      key: 'provider',
+      label: `${t('filterProviderLabel')} : ${providersT(provider)}`,
+      clear: () => setProvider('ALL'),
+    });
+  }
+
+  if (period !== 'all') {
+    activeFilters.push({
+      key: 'period',
+      label: `${t('filterPeriodLabel')} : ${t(`period.${period}`)}`,
+      clear: () => setPeriod('all'),
+    });
+  }
+
+  const activeFilterCount = activeFilters.length;
+  const hasActiveFilters = activeFilterCount > 0;
+
+  function clearFilters() {
     setStatus('ALL');
     setProvider('ALL');
     setPeriod('all');
-    setSearch('');
-    setSort(DEFAULT_SORT);
+    setPaymentIdQuery('');
+    setCustomerQuery('');
     setSelectedId(null);
+  }
+
+  function changeSort(value: string) {
+    setSort(value as SortOption);
   }
 
   function goToPage(page: number) {
@@ -276,115 +358,216 @@ export function PaymentsPanel() {
       <section className="min-w-0 overflow-hidden rounded-2xl border border-border bg-paper-white">
         <h2 className="sr-only">{t('payments')}</h2>
         <div className="flex flex-col gap-4 border-b border-border px-5 py-5 sm:px-6">
-          {hasControls ? (
-            <div className="flex justify-end">
-              <Button variant="ghost" size="sm" onClick={resetFilters}>
-                <X className="size-4" aria-hidden="true" />
-                {t('reset')}
-              </Button>
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
+              <div className="relative min-w-0">
+                <Hash
+                  className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-gray"
+                  aria-hidden="true"
+                />
+                <Input
+                  value={paymentIdQuery}
+                  onChange={(event) => setPaymentIdQuery(event.target.value)}
+                  placeholder={t('paymentIdPlaceholder')}
+                  aria-label={t('paymentIdAria')}
+                  className="h-9 pr-9 pl-9 text-sm"
+                />
+                {paymentIdQuery ? (
+                  <button
+                    type="button"
+                    onClick={() => setPaymentIdQuery('')}
+                    aria-label={t('clearPaymentId')}
+                    className="absolute top-1/2 right-2 inline-flex size-7 -translate-y-1/2 items-center justify-center rounded-full text-slate-gray transition-colors hover:bg-fog-white hover:text-ink-black"
+                  >
+                    <X className="size-4" aria-hidden="true" />
+                  </button>
+                ) : null}
+              </div>
+
+              <div className="relative min-w-0">
+                <User
+                  className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-gray"
+                  aria-hidden="true"
+                />
+                <Input
+                  value={customerQuery}
+                  onChange={(event) => setCustomerQuery(event.target.value)}
+                  placeholder={t('customerPlaceholder')}
+                  aria-label={t('customerAria')}
+                  className="h-9 pr-9 pl-9 text-sm"
+                />
+                {customerQuery ? (
+                  <button
+                    type="button"
+                    onClick={() => setCustomerQuery('')}
+                    aria-label={t('clearCustomer')}
+                    className="absolute top-1/2 right-2 inline-flex size-7 -translate-y-1/2 items-center justify-center rounded-full text-slate-gray transition-colors hover:bg-fog-white hover:text-ink-black"
+                  >
+                    <X className="size-4" aria-hidden="true" />
+                  </button>
+                ) : null}
+              </div>
+
+              <Popover open={filtersOpen} onOpenChange={setFiltersOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className="w-full justify-center sm:w-auto">
+                    <SlidersHorizontal className="size-4" aria-hidden="true" />
+                    {t('filters')}
+                    {activeFilterCount > 0 ? (
+                      <span className="inline-flex size-5 items-center justify-center rounded-full bg-blush-peach text-xs text-sienna-brown tabular-nums">
+                        {activeFilterCount}
+                      </span>
+                    ) : null}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  align="end"
+                  aria-label={t('filters')}
+                  className="w-[min(20rem,calc(100vw-2rem))]"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <h3 className="text-sm font-medium text-ink-black">{t('filters')}</h3>
+                    {activeFilterCount > 0 ? (
+                      <Button variant="ghost" size="xs" onClick={clearFilters}>
+                        {t('clearFilters')}
+                      </Button>
+                    ) : null}
+                  </div>
+
+                  <div className="mt-4 space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="status-filter">{t('filterStatusLabel')}</Label>
+                      <Select
+                        value={status}
+                        onValueChange={(value) => setStatus(value as StatusFilter)}
+                      >
+                        <SelectTrigger
+                          id="status-filter"
+                          size="sm"
+                          className="w-full px-3 text-sm"
+                          aria-label={t('filterStatusAria')}
+                        >
+                          <SelectValue>
+                            {status === 'ALL' ? t('allStatuses') : statusT(status)}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="ALL">{t('allStatuses')}</SelectItem>
+                          {PAYMENT_STATUSES.map((value) => (
+                            <SelectItem key={value} value={value}>
+                              {statusT(value)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="provider-filter">{t('filterProviderLabel')}</Label>
+                      <Select
+                        value={provider}
+                        onValueChange={(value) => setProvider(value as ProviderFilter)}
+                      >
+                        <SelectTrigger
+                          id="provider-filter"
+                          size="sm"
+                          className="w-full px-3 text-sm"
+                          aria-label={t('filterProviderAria')}
+                        >
+                          <SelectValue>
+                            {provider === 'ALL' ? t('allProviders') : providersT(provider)}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="ALL">{t('allProviders')}</SelectItem>
+                          {PAYMENT_PROVIDERS.map((value) => (
+                            <SelectItem key={value} value={value}>
+                              {providersT(value)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="period-filter">{t('filterPeriodLabel')}</Label>
+                      <Select
+                        value={period}
+                        onValueChange={(value) => setPeriod(value as PeriodFilter)}
+                      >
+                        <SelectTrigger
+                          id="period-filter"
+                          size="sm"
+                          className="w-full px-3 text-sm"
+                          aria-label={t('periodLabel')}
+                        >
+                          <SelectValue>{t(`period.${period}`)}</SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {PERIOD_OPTIONS.map((value) => (
+                            <SelectItem key={value} value={value}>
+                              {t(`period.${value}`)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 flex justify-end border-t border-border pt-3">
+                    <Button variant="outline" size="sm" onClick={() => setFiltersOpen(false)}>
+                      {t('closeFilters')}
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
-          ) : null}
 
-          <div className="space-y-2">
-            <div className="relative min-w-0">
-              <Search
-                className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-gray"
-                aria-hidden="true"
-              />
-              <Input
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder={t('searchPlaceholder')}
-                aria-label={t('searchAria')}
-                className="pr-9 pl-9"
-              />
-              {search ? (
-                <button
-                  type="button"
-                  onClick={() => setSearch('')}
-                  aria-label={t('clearSearch')}
-                  className="absolute top-1/2 right-2 inline-flex size-7 -translate-y-1/2 items-center justify-center rounded-full text-slate-gray transition-colors hover:bg-fog-white hover:text-ink-black"
-                >
-                  <X className="size-4" aria-hidden="true" />
-                </button>
-              ) : null}
-            </div>
+            {activeFilters.length > 0 ? (
+              <div className="flex flex-wrap items-center gap-2">
+                {activeFilters.map((filter) => (
+                  <span
+                    key={filter.key}
+                    className="inline-flex max-w-full items-center gap-1 rounded-full border border-border bg-fog-white py-1 pr-1 pl-2.5 text-sm text-slate-gray"
+                  >
+                    <span className="max-w-[220px] truncate">{filter.label}</span>
+                    <button
+                      type="button"
+                      onClick={filter.clear}
+                      aria-label={t('removeFilter', { filter: filter.label })}
+                      className="inline-flex size-5 items-center justify-center rounded-full text-slate-gray transition-colors hover:bg-paper-white hover:text-ink-black"
+                    >
+                      <X className="size-3.5" aria-hidden="true" />
+                    </button>
+                  </span>
+                ))}
+                <Button variant="ghost" size="xs" onClick={clearFilters}>
+                  {t('clearFilters')}
+                </Button>
+              </div>
+            ) : null}
 
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              <Select value={status} onValueChange={(value) => setStatus(value as StatusFilter)}>
-                <SelectTrigger
-                  size="sm"
-                  className="w-full px-3 text-sm"
-                  aria-label={t('filterStatusAria')}
-                >
-                  <SelectValue>{status === 'ALL' ? t('allStatuses') : statusT(status)}</SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ALL">{t('allStatuses')}</SelectItem>
-                  {PAYMENT_STATUSES.map((value) => (
-                    <SelectItem key={value} value={value}>
-                      {statusT(value)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select
-                value={provider}
-                onValueChange={(value) => setProvider(value as ProviderFilter)}
-              >
-                <SelectTrigger
-                  size="sm"
-                  className="w-full px-3 text-sm"
-                  aria-label={t('filterProviderAria')}
-                >
-                  <SelectValue>
-                    {provider === 'ALL' ? t('allProviders') : providersT(provider)}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ALL">{t('allProviders')}</SelectItem>
-                  {PAYMENT_PROVIDERS.map((value) => (
-                    <SelectItem key={value} value={value}>
-                      {providersT(value)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={period} onValueChange={(value) => setPeriod(value as PeriodFilter)}>
-                <SelectTrigger
-                  size="sm"
-                  className="w-full px-3 text-sm"
-                  aria-label={t('periodLabel')}
-                >
-                  <SelectValue>{t(`period.${period}`)}</SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {PERIOD_OPTIONS.map((value) => (
-                    <SelectItem key={value} value={value}>
-                      {t(`period.${value}`)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={sort} onValueChange={(value) => setSort(value as SortOption)}>
-                <SelectTrigger
-                  size="sm"
-                  className="w-full px-3 text-sm"
-                  aria-label={t('sortLabel')}
-                >
-                  <SelectValue>{t(`sort.${sort}`)}</SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {SORT_OPTIONS.map((value) => (
-                    <SelectItem key={value} value={value}>
-                      {t(`sort.${value}`)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="flex items-center gap-2 md:hidden">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <ArrowUpDown className="size-4" aria-hidden="true" />
+                    {t(`sort.${sort}`)}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  <DropdownMenuRadioGroup value={sort} onValueChange={changeSort}>
+                    <DropdownMenuRadioItem value="newest">{t('sort.newest')}</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="oldest">{t('sort.oldest')}</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="amount_desc">
+                      {t('sort.amount_desc')}
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="amount_asc">
+                      {t('sort.amount_asc')}
+                    </DropdownMenuRadioItem>
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
@@ -417,8 +600,8 @@ export function PaymentsPanel() {
               {hasActiveFilters ? t('emptyFilteredBody') : t('emptyBody')}
             </p>
             {hasActiveFilters ? (
-              <Button variant="outline" size="sm" onClick={resetFilters}>
-                {t('reset')}
+              <Button variant="outline" size="sm" onClick={clearFilters}>
+                {t('clearFilters')}
               </Button>
             ) : (
               <Button asChild size="sm">
@@ -450,7 +633,35 @@ export function PaymentsPanel() {
                       }
                       className="text-right text-sm text-slate-gray"
                     >
-                      {t('table.amount')}
+                      <div className="inline-flex items-center gap-1">
+                        <span>{t('table.amount')}</span>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button
+                              type="button"
+                              aria-label={t('sortAmountMenu')}
+                              className="inline-flex size-6 items-center justify-center rounded-full text-slate-gray transition-colors hover:bg-fog-white hover:text-ink-black focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/25"
+                            >
+                              <ChevronDown className="size-4" aria-hidden="true" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuRadioGroup
+                              value={
+                                sort === 'amount_asc' || sort === 'amount_desc' ? sort : undefined
+                              }
+                              onValueChange={changeSort}
+                            >
+                              <DropdownMenuRadioItem value="amount_desc">
+                                {t('sort.amount_desc')}
+                              </DropdownMenuRadioItem>
+                              <DropdownMenuRadioItem value="amount_asc">
+                                {t('sort.amount_asc')}
+                              </DropdownMenuRadioItem>
+                            </DropdownMenuRadioGroup>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </TableHead>
                     <TableHead scope="col" className="text-sm text-slate-gray">
                       {t('table.status')}
@@ -465,7 +676,33 @@ export function PaymentsPanel() {
                       }
                       className="text-sm text-slate-gray"
                     >
-                      {t('table.created')}
+                      <div className="inline-flex items-center gap-1">
+                        <span>{t('table.created')}</span>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button
+                              type="button"
+                              aria-label={t('sortCreatedMenu')}
+                              className="inline-flex size-6 items-center justify-center rounded-full text-slate-gray transition-colors hover:bg-fog-white hover:text-ink-black focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/25"
+                            >
+                              <ChevronDown className="size-4" aria-hidden="true" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="start">
+                            <DropdownMenuRadioGroup
+                              value={sort === 'newest' || sort === 'oldest' ? sort : undefined}
+                              onValueChange={changeSort}
+                            >
+                              <DropdownMenuRadioItem value="newest">
+                                {t('sort.newest')}
+                              </DropdownMenuRadioItem>
+                              <DropdownMenuRadioItem value="oldest">
+                                {t('sort.oldest')}
+                              </DropdownMenuRadioItem>
+                            </DropdownMenuRadioGroup>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </TableHead>
                     <TableHead scope="col" className="pr-5 text-right sm:pr-6">
                       <span className="sr-only">{t('table.open')}</span>
