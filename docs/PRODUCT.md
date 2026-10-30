@@ -53,7 +53,9 @@ actuelle ne les expose pas. La livraison est offerte et les prix sont TTC.
 - `/:locale/product/:slug` : fiche produit, specs, achat direct.
 - `/:locale/checkout` : tunnel d'achat en étapes.
 - `/:locale/checkout/:paymentId` : résultat acheteur et détails techniques.
-- `/:locale/dashboard` : transactions et webhooks.
+- `/:locale/dashboard` : vue d’ensemble (KPI, tendance, passerelles).
+- `/:locale/dashboard/payments` : registre des transactions et détail.
+- `/:locale/dashboard/pipeline` : inbox webhooks et santé du système.
 - `/docs` (API) : Swagger.
 
 Langues : `fr` et `en`, préfixe d'URL obligatoire, `fr` par défaut.

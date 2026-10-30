@@ -217,6 +217,25 @@ répercutée dans Swagger et dans `packages/contracts`.
   et le state machine vivent dans le drawer « Under the hood ».
 - SSE se reconnecte avec backoff ; le polling s'arrête sur statut réglé.
 
+## Dashboard marchand
+
+- La console est découpée en trois routes : vue d’ensemble, paiements et
+  pipeline. La navigation latérale pointe vers ces routes, pas vers des ancres.
+- `GET /payments` accepte une pagination par curseur ou par page. Le mode page
+  renvoie `total` et `pageCount` pour piloter les contrôles numérotés du tableau.
+- `GET /payments/stats?days=7|30` retourne des agrégats calculés en SQL :
+  totaux à vie par statut et devise, ventilation par provider, compteurs de
+  l'inbox webhook et série journalière pour le graphique.
+- Les volumes restent des unités mineures (string), jamais des floats.
+- Les statuts sont regroupés par `SUCCESS_STATUSES`, `FAILED_STATUSES` et
+  `IN_FLIGHT_STATUSES` de `packages/contracts`, source unique côté API et web.
+- Le graphe ne lit jamais seulement la page courante : les KPI et la série
+  viennent de l'API pour ne pas dépendre des paiements chargés dans la table.
+- L'inbox webhook (`webhook_events`) et la file BullMQ (`GET /health`) restent
+  deux sources distinctes affichées dans la page pipeline.
+- Le replay d'un webhook reste dans le détail du paiement, pas dans la page
+  pipeline.
+
 ## État actuel
 
 - Phase 0 : fondations.

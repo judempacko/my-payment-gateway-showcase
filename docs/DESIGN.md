@@ -6,7 +6,7 @@
 
 Source measurements are normalized; roles and recommendations are interpreted. Font summary lists are independent, not paired by position. HTML examples are reconstructions, not source components.
 
-Steep renders analytics as editorial — serif Signifier headlines float over a near-monochrome white canvas while a single warm peach accent (#fbe1d1) punctuates an otherwise achromatic system. The page reads like a product magazine spread: oversized italicized display type, generous breathing room, large soft-edged cards at 24px radius, and pill-shaped controls that sit flat against the surface. Components feel quiet and weightless — shadows are barely-there, borders are hairline, and color is rationed to functional emphasis (a peach callout card, a dark brown label on peach). The product surfaces (region tables, activation charts, AI composers) are presented as floating artifacts around the headline, not nested in a dashboard shell.
+Steep renders analytics as editorial — serif Signifier headlines float over a near-monochrome white canvas while a single warm peach accent (#fbe1d1) punctuates an otherwise achromatic system. The page reads like a product magazine spread: oversized italicized display type, generous breathing room, tight-edged cards at 8px radius, and pill-shaped controls that sit flat against the surface. Components feel quiet and weightless — shadows are barely-there, borders are hairline, and color is rationed to functional emphasis (a peach callout card, a dark brown label on peach). The product surfaces (region tables, activation charts, AI composers) are presented as floating artifacts around the headline, not nested in a dashboard shell.
 
 ## Tokens — Colors
 
@@ -85,12 +85,12 @@ Steep renders analytics as editorial — serif Signifier headlines float over a 
 
 | Element       | Value  |
 | ------------- | ------ |
-| cards         | 24px   |
-| images        | 12px   |
-| inputs        | 16px   |
+| cards         | 8px    |
+| images        | 6px    |
+| inputs        | 6px    |
 | buttons       | 9999px |
-| smallCards    | 16px   |
-| elevatedCards | 20px   |
+| smallCards    | 6px    |
+| elevatedCards | 8px    |
 
 ### Shadows
 
@@ -137,25 +137,25 @@ No background or border, text #17191c, Sohne 16px weight 400, padding 2px 0. Sit
 
 **Role:** Feature blocks, content containers, and base card surface
 
-Background #f2f2f3, border-radius 24px, no shadow, no border, padding varies (0 internally with content children providing their own padding). This is the default workhorse card — flat, soft, and quiet.
+Background #f2f2f3, border-radius 8px, no shadow, no border, padding varies (0 internally with content children providing their own padding). This is the default workhorse card — flat, soft, and quiet.
 
 ### Accent Peach Card
 
 **Role:** Editorial highlight or callout panel (customer quotes, feature spotlights)
 
-Background #fbe1d1, text and strokes #5d2a1a, border-radius 24px, no shadow, no border. The warm-on-warm palette creates a kraft-paper effect — these cards should be rare (one per page maximum) to preserve their impact.
+Background #fbe1d1, text and strokes #5d2a1a, border-radius 8px, no shadow, no border. The warm-on-warm palette creates a kraft-paper effect — these cards should be rare (one per page maximum) to preserve their impact.
 
 ### Floating Product Artifact
 
 **Role:** Hero and section visual elements (region table, activation chart, registration card, AI composer)
 
-Background #ffffff, border-radius 20px, subtle box-shadow: 0 0 0 1px rgba(4,23,43,0.05), 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1), padding 16px 20px 12px 12px. These are the product UI fragments that float around hero text — they are the only elements with visible shadow, and only at 10% opacity.
+Background #ffffff, border-radius 8px, subtle box-shadow: 0 0 0 1px rgba(4,23,43,0.05), 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1), padding 16px 20px 12px 12px. These are the product UI fragments that float around hero text — they are the only elements with visible shadow, and only at 10% opacity.
 
 ### Input / Composer
 
 **Role:** AI question input field (Ask anything…)
 
-Background #ffffff, border 1px solid #ececec or hairline, border-radius 16px, padding 16px, placeholder text #6f727a in Sohne 16px. Contains left-side @ and ⓘ icons and a right-side dark circular send button (40px diameter, #17191c fill, white arrow icon).
+Background #ffffff, border 1px solid #ececec or hairline, border-radius 6px, padding 16px, placeholder text #6f727a in Sohne 16px. Contains left-side @ and ⓘ icons and a right-side dark circular send button (40px diameter, #17191c fill, white arrow icon).
 
 ### Stat Card with Chart
 
@@ -181,7 +181,8 @@ No background, no border, text in Sohne 14px weight 400 #6a6e78. Intentionally g
 
 - Use Signifier weight 400 at 44/64/90px for editorial headings only (marketing, store, product storytelling); use Sohne 430–480 for application headings (checkout, dashboard, payment result, legal)
 - Use the peach #fbe1d1 card surface at most once per page and only for editorial emphasis — treat it as a rare accent, not a background
-- Set border-radius to 9999px on all buttons and 24px on all content cards; these are the two structural radii of the system
+- Set border-radius to 9999px on all buttons and 8px on all content cards; these are the two structural radii of the system
+- Use a 6px radius on dropdown triggers and panels; cap long option lists at 288px and keep them scrollable
 - Pair every filled pill button (#17191c) with a ghost pill button (#17191c border, transparent fill) as a secondary action on the same row
 - Use Sohne half-step weights (430, 450, 480) for body hierarchy before reaching weight 500 — the scale is finer than standard 400/500/700
 - Set letter-spacing to -0.025em on 90px display, -0.015em on 64/44px headings, and -0.009em on 26/18px Sohne — tighter tracking at larger sizes is the typographic signature
@@ -192,7 +193,7 @@ No background, no border, text in Sohne 14px weight 400 #6a6e78. Intentionally g
 - Don't use chromatic colors beyond the peach/brown pair — the system is intentionally 97% achromatic; introducing blue, green, or purple will break the editorial restraint
 - Don't use bold (600+) or semibold (500) weights in Signifier — the serif stays at 400 across all sizes, that restraint is the signature
 - Don't apply drop shadows to content cards (Neutral Card or Accent Peach Card) — only floating product artifacts earn elevation
-- Don't use border-radius below 16px on cards or below 9999px on buttons — sharp corners and moderate radii are not part of this system
+- Don't use border-radius above 8px on cards or below 9999px on buttons — large radii and sharp buttons are not part of this system
 - Don't underline inline text links at rest — the arrow suffix (→) carries the link affordance; underlines appear only on hover
 - Don't place the peach #fbe1d1 card on a non-white section background — it needs Paper White or Card Mist beneath it to read as warm-on-neutral
 - Don't use the #5d2a1a Sienna Brown outside peach surfaces — it's the ink for Blush Peach cards and chart strokes, never body text on white
@@ -236,13 +237,13 @@ Page model is max-width 1200px centered, with hero sections going near full-blee
 
 1. **Hero headline + accent card collage**: White canvas (#ffffff). Display headline at 90px Signifier weight 400, #17191c, letter-spacing -2.25px, with one italicized phrase mid-sentence. Subhead at 17px Sohne weight 400, #5f636d. Below: a filled pill button (background #17191c, text #ffffff, border-radius 9999px, padding 0 20px, Sohne 16px) and a ghost pill button (background transparent, border 1px solid #17191c, text #17191c, border-radius 9999px) side by side. Surround the text with three white floating product artifact cards: a data table card, a line chart card, and a stat card — each with background #ffffff, border-radius 20px, box-shadow 0 0 0 1px rgba(4,23,43,0.05) + 0 20px 25px -5px rgba(0,0,0,0.1), positioned with negative margins to overlap the text margins.
 
-2. **Accent editorial card**: Background #fbe1d1, text #5d2a1a, border-radius 24px, no shadow, padding 40px. Title at 26px Sohne weight 450, #5d2a1a, letter-spacing -0.23px. Body quote at 18px Sohne weight 430, #5d2a1a. Attribution at 14px Sohne weight 400, #5d2a1a. Place this card once on a #ffffff section, never on a colored or dark background.
+2. **Accent editorial card**: Background #fbe1d1, text #5d2a1a, border-radius 8px, no shadow, padding 40px. Title at 26px Sohne weight 450, #5d2a1a, letter-spacing -0.23px. Body quote at 18px Sohne weight 430, #5d2a1a. Attribution at 14px Sohne weight 400, #5d2a1a. Place this card once on a #ffffff section, never on a colored or dark background.
 
-3. **Neutral feature card**: Background #f2f2f3, border-radius 24px, no shadow, padding 32px 20px. Category label at 14px Sohne weight 400, #6a6e78 (no background, no badge style). Title at 20px Sohne weight 500, #17191c. Body at 16px Sohne weight 400, #17191c, line-height 1.5. Text link below: Sohne 16px weight 400, #17191c, no border-radius, padding 20px 0, with → arrow suffix.
+3. **Neutral feature card**: Background #f2f2f3, border-radius 8px, no shadow, padding 32px 20px. Category label at 14px Sohne weight 400, #6a6e78 (no background, no badge style). Title at 20px Sohne weight 500, #17191c. Body at 16px Sohne weight 400, #17191c, line-height 1.5. Text link below: Sohne 16px weight 400, #17191c, no border-radius, padding 20px 0, with → arrow suffix.
 
 4. **AI composer input**: White background #ffffff, border 1px solid #ececec, border-radius 16px, padding 16px, width 480px. Placeholder text Ask anything… at 16px Sohne weight 400, #6f727a. Left side: two ghost icon buttons (40px circle, no fill). Right side: 40px circular send button with background #17191c, white arrow icon centered.
 
-5. **Section with alternating background**: Section background #fafafb (Fog White), padding 80px vertical. Section title at 64px Signifier weight 400, #17191c, letter-spacing -0.96px. Subhead at 18px Sohne weight 430, #5f636d. Below: 3-column grid of neutral feature cards (#f2f2f3 background, 24px radius, 20px padding, no shadow) with 24px column gap.
+5. **Section with alternating background**: Section background #fafafb (Fog White), padding 80px vertical. Section title at 64px Signifier weight 400, #17191c, letter-spacing -0.96px. Subhead at 18px Sohne weight 430, #5f636d. Below: 3-column grid of neutral feature cards (#f2f2f3 background, 8px radius, 20px padding, no shadow) with 24px column gap.
 
 ## Similar Brands
 
@@ -330,19 +331,19 @@ Page model is max-width 1200px centered, with hero sections going near full-blee
   --element-gap: 8px;
 
   /* Border Radius */
-  --radius-sm: 0.01px;
-  --radius-xl: 12px;
-  --radius-2xl: 16px;
-  --radius-2xl-2: 20px;
-  --radius-3xl: 24px;
+  --radius-sm: 2px;
+  --radius-xl: 6px;
+  --radius-2xl: 8px;
+  --radius-2xl-2: 8px;
+  --radius-3xl: 8px;
 
   /* Named Radii */
-  --radius-cards: 24px;
-  --radius-images: 12px;
-  --radius-inputs: 16px;
+  --radius-cards: 8px;
+  --radius-images: 6px;
+  --radius-inputs: 6px;
   --radius-buttons: 9999px;
-  --radius-smallcards: 16px;
-  --radius-elevatedcards: 20px;
+  --radius-smallcards: 6px;
+  --radius-elevatedcards: 8px;
 
   /* Shadows */
   --shadow-subtle: oklab(0 0 0 / 0.05) 0px 0px 0px 1px, rgba(0, 0, 0, 0.08) 0px 4px 24px 0px;
@@ -423,11 +424,11 @@ Page model is max-width 1200px centered, with hero sections going near full-blee
   --spacing-160: 160px;
 
   /* Border Radius */
-  --radius-sm: 0.01px;
-  --radius-xl: 12px;
-  --radius-2xl: 16px;
-  --radius-2xl-2: 20px;
-  --radius-3xl: 24px;
+  --radius-sm: 2px;
+  --radius-xl: 6px;
+  --radius-2xl: 8px;
+  --radius-2xl-2: 8px;
+  --radius-3xl: 8px;
 
   /* Shadows */
   --shadow-subtle: oklab(0 0 0 / 0.05) 0px 0px 0px 1px, rgba(0, 0, 0, 0.08) 0px 4px 24px 0px;
@@ -840,27 +841,27 @@ Page model is max-width 1200px centered, with hero sections going near full-blee
   },
   "radius": {
     "sm": {
-      "$value": "0.01px",
+      "$value": "2px",
       "$type": "dimension",
       "$description": "Border radius sm"
     },
     "xl": {
-      "$value": "12px",
+      "$value": "6px",
       "$type": "dimension",
       "$description": "Border radius xl"
     },
     "2xl": {
-      "$value": "16px",
+      "$value": "8px",
       "$type": "dimension",
       "$description": "Border radius 2xl"
     },
     "2xl-2": {
-      "$value": "20px",
+      "$value": "8px",
       "$type": "dimension",
       "$description": "Border radius 2xl-2"
     },
     "3xl": {
-      "$value": "24px",
+      "$value": "8px",
       "$type": "dimension",
       "$description": "Border radius 3xl"
     }
@@ -924,7 +925,7 @@ Page model is max-width 1200px centered, with hero sections going near full-blee
 
 - **Product surfaces**: `ProductVisual` uses a neutral mist/peach wash when no
   image exists, then `next/image` once the merchant provides assets. Product
-  cards keep the 24px card radius and 20px elevated radius for the order
+  cards keep the 8px card radius and 8px elevated radius for the order
   summary.
 - **Checkout shell**: minimal header (logo, secure checkout, language) and
   minimal footer (legal, returns, contact). The marketing nav never appears in
@@ -944,17 +945,23 @@ Page model is max-width 1200px centered, with hero sections going near full-blee
 
 - **Shell**: the dashboard uses a dedicated compact header and a slim footer;
   it does not inherit the marketing navigation or the large marketing footer.
+- **Routes**: overview, payments ledger and webhook pipeline are separate pages.
+  The sidebar uses route links with an active `aria-current`, not in-page anchors.
 - **Overview**: one peach `Volume traité` panel is the single editorial accent.
   Supporting metrics stay on paper white with hairline dividers, never four
   floating KPI cards.
 - **Ledger**: payments are displayed as a flat, bordered ledger with mono IDs,
   tabular amounts, compact status badges and a visible row action. On mobile
-  the ledger becomes a list of full-width payment buttons.
-- **Status**: functional status tones (`success`, `warning`, `danger`, `info`,
-  `neutral`) are allowed only on payment status surfaces. Peach remains an
-  editorial accent, not a success color.
+  the ledger becomes a list of full-width payment buttons. The ledger is
+  paginated with 10, 15 or 25 payments per page and at most three page numbers
+  between Previous and Next.
+- **Status**: status pills use the Google Material palette — success
+  `#e6f4ea`/`#137333`, warning `#fef7e0`/`#a35600`, danger `#fce8e6`/`#c5221f`,
+  info `#e8f0fe`/`#1967d2`, neutral `#f1f3f4`/`#5f6368` — with no border and no
+  leading dot. Functional status tones are allowed only on payment status
+  surfaces. Peach remains an editorial accent, not a success color.
 - **Detail**: a payment opens in a 680px right sheet on desktop and a full-width
   sheet on mobile. The sheet uses container queries so timeline and webhook
   cards stack by available width, not viewport width.
-- **System**: database and webhook queue health live in one compact status
-  strip below the ledger, not in competing KPI cards.
+- **System**: database and webhook queue health live on the pipeline page, in
+  one compact status card, not in competing KPI cards.
