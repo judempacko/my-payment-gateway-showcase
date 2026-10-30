@@ -26,6 +26,8 @@ import type { Observable } from 'rxjs';
 import { DemoKeyGuard } from '../../common/guards/demo-key.guard';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { ListPaymentsQueryDto } from './dto/list-payments-query.dto';
+import { PaymentStatsQueryDto } from './dto/payment-stats-query.dto';
+import { PaymentStatsResponseDto } from './dto/payment-stats-response.dto';
 import {
   ListPaymentsResponseDto,
   PaymentEventResponseDto,
@@ -71,10 +73,21 @@ export class PaymentsController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'List payments with filters and cursor pagination' })
+  @ApiOperation({ summary: 'List payments with filters and cursor or page pagination' })
   @ApiOkResponse({ type: ListPaymentsResponseDto })
   list(@Query() query: ListPaymentsQueryDto): Promise<ListPaymentsResponseDto> {
     return this.payments.list(query);
+  }
+
+  @Get('stats')
+  @ApiOperation({
+    summary: 'Get dashboard aggregates',
+    description:
+      'Lifetime totals, per-provider breakdown, webhook pipeline counters and a daily chart window.',
+  })
+  @ApiOkResponse({ type: PaymentStatsResponseDto })
+  stats(@Query() query: PaymentStatsQueryDto): Promise<PaymentStatsResponseDto> {
+    return this.payments.stats(query.days ?? 7);
   }
 
   @Get(':id')

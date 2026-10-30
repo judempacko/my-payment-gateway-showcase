@@ -6,7 +6,7 @@ import {
   type PaymentStatus,
 } from '@pay/contracts';
 import { Injectable } from '@nestjs/common';
-import { and, asc, desc, eq, lt, type SQL } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, lt, sql, type SQL } from 'drizzle-orm';
 import { DatabaseService } from '../../infra/db/database.service';
 import { idempotencyKeys, paymentEvents, payments, webhookEvents } from '../../infra/db/schema';
 import {
@@ -16,6 +16,7 @@ import {
   type PaymentEventRow,
   type PaymentRow,
 } from './payment.mapper';
+import type { PaymentDayRow, PaymentTotalsRow, WebhookPipelineRow } from './payment-stats';
 
 export const DEMO_MERCHANT_ID = 'demo';
 
@@ -35,6 +36,7 @@ export type ListPaymentsInput = {
   provider?: PaymentProvider;
   limit: number;
   cursor?: string;
+  page?: number;
 };
 
 @Injectable()
@@ -86,7 +88,14 @@ export class PaymentsRepository {
     return row ?? null;
   }
 
-  async list(input: ListPaymentsInput): Promise<{ items: Payment[]; nextCursor: string | null }> {
+  async list(input: ListPaymentsInput): Promise<{
+    items: Payment[];
+    nextCursor: string | null;
+    page?: number;
+    pageSize?: number;
+    total?: number;
+    pageCount?: number;
+  }> {
     const conditions: SQL[] = [];
 
     if (input.status) {
@@ -95,6 +104,34 @@ export class PaymentsRepository {
 
     if (input.provider) {
       conditions.push(eq(payments.provider, input.provider));
+    }
+
+    if (input.page !== undefined) {
+      const where = conditions.length > 0 ? and(...conditions) : undefined;
+      const offset = (input.page - 1) * input.limit;
+      const [rows, countRows] = await Promise.all([
+        this.database.db
+          .select()
+          .from(payments)
+          .where(where)
+          .orderBy(desc(payments.createdAt), desc(payments.id))
+          .limit(input.limit)
+          .offset(offset),
+        this.database.db
+          .select({ count: sql<number>`count(*)::int` })
+          .from(payments)
+          .where(where),
+      ]);
+      const total = countRows[0]?.count ?? 0;
+
+      return {
+        items: rows.map(toPaymentDto),
+        nextCursor: null,
+        page: input.page,
+        pageSize: input.limit,
+        total,
+        pageCount: Math.ceil(total / input.limit),
+      };
     }
 
     if (input.cursor) {
@@ -115,6 +152,56 @@ export class PaymentsRepository {
       items: page.map(toPaymentDto),
       nextCursor: hasMore ? (page.at(-1)?.id ?? null) : null,
     };
+  }
+
+  async statsTotals(): Promise<PaymentTotalsRow[]> {
+    return this.database.db
+      .select({
+        provider: payments.provider,
+        status: payments.status,
+        currency: payments.currency,
+        count: sql<number>`count(*)::int`,
+        amountMinor: sql<string>`coalesce(sum(${payments.amountMinor}), 0)::text`,
+      })
+      .from(payments)
+      .groupBy(payments.provider, payments.status, payments.currency);
+  }
+
+  async statsSeries(since: Date): Promise<PaymentDayRow[]> {
+    const date = sql<string>`to_char(date_trunc('day', ${payments.createdAt} at time zone 'UTC'), 'YYYY-MM-DD')`;
+
+    return this.database.db
+      .select({
+        date,
+        status: payments.status,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(payments)
+      .where(gte(payments.createdAt, since))
+      .groupBy(date, payments.status)
+      .orderBy(date);
+  }
+
+  async statsWebhooks(): Promise<WebhookPipelineRow> {
+    const [row] = await this.database.db
+      .select({
+        processed: sql<number>`count(*) filter (where ${webhookEvents.processedAt} is not null)::int`,
+        pending: sql<number>`count(*) filter (where ${webhookEvents.processedAt} is null and ${webhookEvents.processingError} is null)::int`,
+        failed: sql<number>`count(*) filter (where ${webhookEvents.processedAt} is null and ${webhookEvents.processingError} is not null)::int`,
+        lastReceivedAt: sql<Date | null>`max(${webhookEvents.receivedAt})`,
+        lastErrorAt: sql<Date | null>`max(${webhookEvents.receivedAt}) filter (where ${webhookEvents.processingError} is not null and ${webhookEvents.processedAt} is null)`,
+      })
+      .from(webhookEvents);
+
+    return (
+      row ?? {
+        processed: 0,
+        pending: 0,
+        failed: 0,
+        lastReceivedAt: null,
+        lastErrorAt: null,
+      }
+    );
   }
 
   async listEvents(paymentId: string): Promise<PaymentEventRow[]> {

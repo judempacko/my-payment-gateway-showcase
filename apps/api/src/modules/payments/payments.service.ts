@@ -2,6 +2,8 @@ import {
   isSettledStatus,
   type Payment,
   type PaymentEvent,
+  type PaymentStats,
+  type PaymentStatsDays,
   type WebhookRecord,
 } from '@pay/contracts';
 import {
@@ -22,6 +24,7 @@ import { WebhookIngestService } from '../webhooks/webhook-ingest.service';
 import type { CreatePaymentDto } from './dto/create-payment.dto';
 import type { ListPaymentsQueryDto } from './dto/list-payments-query.dto';
 import { toPaymentEventDto } from './payment.mapper';
+import { buildPaymentStats, statsWindowStart } from './payment-stats';
 import { PaymentStateService } from './payment-state.service';
 import { PaymentsRepository } from './payments.repository';
 
@@ -88,15 +91,33 @@ export class PaymentsService {
     return this.repository.asPaymentDto(row);
   }
 
-  async list(
-    query: ListPaymentsQueryDto,
-  ): Promise<{ items: Payment[]; nextCursor: string | null }> {
+  async list(query: ListPaymentsQueryDto): Promise<{
+    items: Payment[];
+    nextCursor: string | null;
+    page?: number;
+    pageSize?: number;
+    total?: number;
+    pageCount?: number;
+  }> {
     return this.repository.list({
       status: query.status,
       provider: query.provider,
       limit: query.limit ?? 20,
       cursor: query.cursor,
+      page: query.page,
     });
+  }
+
+  async stats(days: PaymentStatsDays): Promise<PaymentStats> {
+    const now = new Date();
+    const since = statsWindowStart(now, days);
+    const [totals, series, webhooks] = await Promise.all([
+      this.repository.statsTotals(),
+      this.repository.statsSeries(since),
+      this.repository.statsWebhooks(),
+    ]);
+
+    return buildPaymentStats({ totals, series, webhooks, days, now });
   }
 
   async timeline(id: string): Promise<PaymentEvent[]> {

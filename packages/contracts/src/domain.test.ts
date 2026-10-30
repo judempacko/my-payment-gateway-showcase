@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { PaymentStatus, canTransition, isSettledStatus, isTerminalStatus } from './domain';
+import {
+  FAILED_STATUSES,
+  IN_FLIGHT_STATUSES,
+  PAYMENT_STATUSES,
+  PaymentStatus,
+  SUCCESS_STATUSES,
+  canTransition,
+  isSettledStatus,
+  isTerminalStatus,
+} from './domain';
 
 describe('payment state machine', () => {
   it('allows the normal mock checkout path', () => {
@@ -20,5 +29,12 @@ describe('payment state machine', () => {
     expect(isTerminalStatus(PaymentStatus.SUCCEEDED)).toBe(false);
     expect(isSettledStatus(PaymentStatus.SUCCEEDED)).toBe(true);
     expect(isSettledStatus(PaymentStatus.PROCESSING)).toBe(false);
+  });
+
+  it('partitions every payment status into exactly one dashboard bucket', () => {
+    const buckets = [...SUCCESS_STATUSES, ...FAILED_STATUSES, ...IN_FLIGHT_STATUSES];
+
+    expect(new Set(buckets).size).toBe(buckets.length);
+    expect([...buckets].sort()).toEqual([...PAYMENT_STATUSES].sort());
   });
 });

@@ -92,6 +92,26 @@ export const SETTLED_STATUSES: readonly PaymentStatus[] = [
   PaymentStatus.REFUNDED,
 ];
 
+export const SUCCESS_STATUSES: readonly PaymentStatus[] = [
+  PaymentStatus.SUCCEEDED,
+  PaymentStatus.REFUND_PENDING,
+  PaymentStatus.PARTIALLY_REFUNDED,
+  PaymentStatus.REFUNDED,
+];
+
+export const FAILED_STATUSES: readonly PaymentStatus[] = [
+  PaymentStatus.FAILED,
+  PaymentStatus.EXPIRED,
+  PaymentStatus.CANCELED,
+];
+
+export const IN_FLIGHT_STATUSES: readonly PaymentStatus[] = [
+  PaymentStatus.CREATED,
+  PaymentStatus.PENDING,
+  PaymentStatus.REQUIRES_ACTION,
+  PaymentStatus.PROCESSING,
+];
+
 export function canTransition(from: PaymentStatus, to: PaymentStatus): boolean {
   return PAYMENT_TRANSITIONS[from].includes(to);
 }
@@ -203,11 +223,65 @@ export type ListPaymentsQuery = {
   provider?: PaymentProvider;
   limit?: number;
   cursor?: string;
+  page?: number;
 };
 
 export type ListPaymentsResponse = {
   items: Payment[];
   nextCursor: string | null;
+  page?: number;
+  pageSize?: number;
+  total?: number;
+  pageCount?: number;
+};
+
+export type PaymentStatsDays = 7 | 30;
+
+export type PaymentStatsMoney = {
+  currency: string;
+  amountMinor: string;
+};
+
+export type PaymentStatsTrendPoint = {
+  date: string;
+  succeeded: number;
+  failed: number;
+};
+
+export type PaymentStatsProvider = {
+  provider: PaymentProvider;
+  payments: number;
+  succeeded: number;
+  successRate: number | null;
+};
+
+export type PaymentStatsWebhooks = {
+  processed: number;
+  pending: number;
+  failed: number;
+  lastReceivedAt: string | null;
+  lastErrorAt: string | null;
+};
+
+export type PaymentStats = {
+  generatedAt: string;
+  totals: {
+    payments: number;
+    succeeded: number;
+    inFlight: number;
+    failed: number;
+    settled: number;
+    successRate: number | null;
+    volume: PaymentStatsMoney[];
+  };
+  window: {
+    days: PaymentStatsDays;
+    since: string;
+    until: string;
+    series: PaymentStatsTrendPoint[];
+  };
+  providers: PaymentStatsProvider[];
+  webhooks: PaymentStatsWebhooks;
 };
 
 export type ApiError = {

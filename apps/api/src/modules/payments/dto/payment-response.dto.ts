@@ -176,6 +176,18 @@ export class ListPaymentsResponseDto {
 
   @ApiPropertyOptional({ nullable: true })
   nextCursor!: string | null;
+
+  @ApiPropertyOptional({ description: 'Current page when page pagination is used' })
+  page?: number;
+
+  @ApiPropertyOptional({ description: 'Page size when page pagination is used' })
+  pageSize?: number;
+
+  @ApiPropertyOptional({ description: 'Total matching payments' })
+  total?: number;
+
+  @ApiPropertyOptional({ description: 'Total number of pages' })
+  pageCount?: number;
 }
 
 export class SimulatePaymentResponseDto {
