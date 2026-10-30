@@ -4,6 +4,8 @@ import type {
   Payment,
   PaymentEvent,
   PaymentProvider,
+  PaymentStats,
+  PaymentStatsDays,
   PaymentStatus,
   Product,
   ProviderInfo,
@@ -74,6 +76,7 @@ export function getPayments(params: {
   provider?: PaymentProvider;
   limit?: number;
   cursor?: string;
+  page?: number;
 }): Promise<ListPaymentsResponse> {
   const search = new URLSearchParams();
 
@@ -81,9 +84,14 @@ export function getPayments(params: {
   if (params.provider) search.set('provider', params.provider);
   if (params.limit) search.set('limit', String(params.limit));
   if (params.cursor) search.set('cursor', params.cursor);
+  if (params.page) search.set('page', String(params.page));
 
   const query = search.toString();
   return request<ListPaymentsResponse>(`/payments${query ? `?${query}` : ''}`);
+}
+
+export function getPaymentStats(days: PaymentStatsDays): Promise<PaymentStats> {
+  return request<PaymentStats>(`/payments/stats?days=${days}`);
 }
 
 export function getPayment(id: string): Promise<Payment> {

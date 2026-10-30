@@ -9,7 +9,7 @@ export async function DashboardFooter() {
 
   return (
     <footer className="border-t border-border bg-paper-white">
-      <div className="page-shell flex flex-col gap-2 py-4 text-sm text-slate-gray sm:flex-row sm:items-center sm:justify-between">
+      <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-2 px-5 py-4 text-sm text-slate-gray sm:flex-row sm:items-center sm:justify-between sm:px-8 xl:px-10">
         <p>
           © {year} {t('common.brand')} {t('common.showcase')} · {t('common.demoStore')}
         </p>
