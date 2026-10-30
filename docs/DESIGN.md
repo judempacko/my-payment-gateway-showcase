@@ -954,7 +954,8 @@ Page model is max-width 1200px centered, with hero sections going near full-blee
   tabular amounts, compact status badges and a visible row action. On mobile
   the ledger becomes a list of full-width payment buttons. The ledger is
   paginated with 10, 15 or 25 payments per page and at most three page numbers
-  between Previous and Next.
+  between Previous and Next. Advanced filters live in a Filters popover with
+  removable chips; Montant and Créé use chevron sort menus.
 - **Status**: status pills use the Google Material palette — success
   `#e6f4ea`/`#137333`, warning `#fef7e0`/`#a35600`, danger `#fce8e6`/`#c5221f`,
   info `#e8f0fe`/`#1967d2`, neutral `#f1f3f4`/`#5f6368` — with no border and no
